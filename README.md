@@ -19,3 +19,7 @@
 - 特殊測站說明：
   - **員林站**：排除，因缺失 2025 年以前的觀測資料
   - **萬里站**：包含在 `moenv_station.csv`，但自 **2025 年 5 月 1 日起停止空氣品質監測**
+
+## 🔹Grand Mean Summary
+
+![alt text](results/iTransformer_date+auxst+pos/global_comprehensive_report.png)
