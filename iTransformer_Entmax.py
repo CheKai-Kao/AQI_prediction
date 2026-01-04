@@ -88,33 +88,24 @@ class SparseMultiheadAttention(nn.Module):
     def forward(self, query, key, value, key_padding_mask=None):
         B, L, _ = query.shape  # Batch, Seq_len, d_model (assume batch_first=True)
         
-        # 1. 投影並分頭: (B, L, n_heads, d_head) -> 轉置為 (B, n_heads, L, d_head)
         q = self.q_proj(query).view(B, L, self.n_heads, self.d_head).transpose(1, 2)
         k = self.k_proj(key).view(B, L, self.n_heads, self.d_head).transpose(1, 2)
         v = self.v_proj(value).view(B, L, self.n_heads, self.d_head).transpose(1, 2)
 
-        # 2. Scaled Dot-Product
-        # scores shape: (B, n_heads, L, L) - 這裡是 Self-Attention
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
 
-        # 3. Apply Masking
         if key_padding_mask is not None:
-            # key_padding_mask shape: (B, L) -> 擴展為 (B, 1, 1, L) 以廣播到 heads 和 query dim
-            # Mask 值為 True 表示要遮蔽
             mask = key_padding_mask.unsqueeze(1).unsqueeze(2)
             scores = scores.masked_fill(mask, -1e9)
 
-        # 4. Sparse Attention via Entmax
         attn_weights = entmax15(scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
 
-        # 5. Weighted Sum & Projection
         context = torch.matmul(attn_weights, v) # (B, n_heads, L, d_head)
-        
-        # 合併頭: (B, L, n_heads, d_head) -> (B, L, d_model)
         context = context.transpose(1, 2).contiguous().view(B, L, self.d_model)
         
         return self.out_proj(context)
+
 
 class SparseTransformerEncoderLayer(nn.Module):
     """
@@ -140,22 +131,21 @@ class SparseTransformerEncoderLayer(nn.Module):
             self.activation = nn.ReLU()
 
     def forward(self, src, src_key_padding_mask=None):
-        # 1. Sparse Self-Attention block
         src2 = self.self_attn(src, src, src, key_padding_mask=src_key_padding_mask)
         src = src + self.dropout1(src2)
-        src = self.norm1(src)
+        #src = self.norm1(src)   # 不使用 layernorm
 
-        # 2. Feed Forward block
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
         src = src + self.dropout2(src2)
-        src = self.norm2(src)
+        #src = self.norm2(src)
         
         return src
+
 
 class iTransformer_Entmax(nn.Module):
     def __init__(self, n_vars=5, lookback_len=24, d_model=128, n_heads=2, e_layers=2, dropout=0.1):
         super().__init__()
-
+        self.n_vars = n_vars   # target features
         self.linear_embedding = nn.Linear(lookback_len, d_model)
         self.date_embedding = nn.Linear(5, d_model)
 
@@ -182,8 +172,6 @@ class iTransformer_Entmax(nn.Module):
             nn.Linear(d_model * 2, 24)
         )
 
-        self.n_vars = n_vars
-
     def forward(self, x, x_mask, date_coord, aux_pos):
         B, _, _ = x.shape
         n_vars = self.n_vars
@@ -203,13 +191,11 @@ class iTransformer_Entmax(nn.Module):
         final_input = torch.cat([x_enc, date_emb.unsqueeze(1)], dim=1)
 
         # Masking Logic
-        # 注意：SparseMultiheadAttention 中，mask 為 True 表示被遮蔽的位置
         target_variate_mask = ~(x_mask.sum(dim=-1) > 0)
         date_mask = torch.zeros((B, 1), dtype=torch.bool, device=device)
         final_mask = torch.cat([target_variate_mask, date_mask], dim=1)
 
         # Encoder Forward Pass
-        # 由於使用 ModuleList，需手動迭代每一層
         enc_out = final_input
         for layer in self.encoder_layers:
             enc_out = layer(enc_out, src_key_padding_mask=final_mask)
@@ -218,31 +204,24 @@ class iTransformer_Entmax(nn.Module):
         target_out = enc_out[:, :n_vars, :]
         output = self.projector(target_out)
 
-        dec_out = output[:, 3, :]
+        dec_out = output[:, 3, :]  # only PM2.5
         
         return dec_out
 
 
-
-# ==========================================
-# 🧪 測試區塊 (直接執行此檔案可驗證)
-# ==========================================
 if __name__ == "__main__":
     print("🚀 開始測試模型...")
     
-    # 設定參數
     BATCH = 32
     SEQ_LEN = 24
     D_MODEL = 128
     
-    # 模擬數據結構: 假設有 5 個目標變數 + 4 個鄰居變數 = 9 個通道
     N_TARGET = 5
     N_AUX = 4
     TOTAL_CH = N_TARGET + N_AUX
     
     model = iTransformer_Entmax(n_vars=N_TARGET, d_model=D_MODEL)
     
-    # 產生假數據
     x = torch.randn(BATCH, TOTAL_CH, SEQ_LEN) # [32, 9, 24]
     x_mask = torch.ones(BATCH, TOTAL_CH, SEQ_LEN)
     aux_pos = torch.randn(BATCH, N_AUX, 3)    # [32, 4, 3]
@@ -254,7 +233,6 @@ if __name__ == "__main__":
         print(f"✅ 測試通過!")
         print(f"輸入通道數: {TOTAL_CH} (Target:{N_TARGET}, Aux:{N_AUX})")
         print(f"主輸出 (dec_out): {dec_out.shape} -> 預期 [32, 24]")
-        #print(f"輔輸出 (other):   {other.shape}   -> 預期 [32, 4, 24]")
         
     except Exception as e:
         print(f"❌ 錯誤: {e}")
