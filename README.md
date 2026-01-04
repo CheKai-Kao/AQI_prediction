@@ -22,4 +22,5 @@
 
 ## 🔹Grand Mean Summary
 
-![alt text](results/iTransformer_date+auxst+pos/global_comprehensive_report.png)
+D:\AQI_prediction\results\iTransformer_date+auxst+pos\global_comprehensive_report.png
+
