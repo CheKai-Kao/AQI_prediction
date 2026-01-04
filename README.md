@@ -22,5 +22,6 @@
 
 ## 🔹Grand Mean Summary
 
-D:\AQI_prediction\results\iTransformer_date+auxst+pos\global_comprehensive_report.png
+<img width="6000" height="4200" alt="global_comprehensive_report" src="https://github.com/user-attachments/assets/440ecc3c-dd40-4a2a-889d-e6e92a5e0b79" />
+
 
