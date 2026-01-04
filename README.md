@@ -17,8 +17,7 @@
 ## 測試資料說明
 
 - 測試資料期間：**2025 年 1 月 ~ 11 月**
-- 資料來源：**[環境部環境資料開放平臺/空氣品質監測小時值資料](https://data.moenv.gov.tw/dataset/detail/AQX_P_13<img width="998" height="94" alt="image" src="https://github.com/user-attachments/assets/383f90f4-90e3-4ed8-a1df-d1a6260aa9b9" />
-)**
+- 資料來源：**[環境部環境資料開放平臺/空氣品質監測小時值資料](https://data.moenv.gov.tw/dataset/detail/AQX_P_13)**
 - 測站數量：
   - 共 **77 個環保署中央固定式空氣品質監測站**  
   - 目前運作測站共 78 個
