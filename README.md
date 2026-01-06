@@ -1,4 +1,4 @@
-# *24 & 72-hour forecasting for PM2.5 by iTransformer*
+# 24 & 72-hour forecasting for PM2.5 by iTransformer
 
 ✨ *更新：上傳書面報告*
 
