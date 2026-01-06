@@ -22,8 +22,8 @@
   - **員林站**：排除，因缺失 2025 年以前的觀測資料
   - **萬里站**：包含在 `moenv_station.csv`，但自 **2025 年 5 月 1 日起停止空氣品質監測**
  
-## 🔹測試資料說明
+## 🔹Log
 
-實驗記錄 wandb(https://wandb.ai/chekai_kao-/iTransformer?nw=nwuserchekai_kao)
+[wandb](https://wandb.ai/chekai_kao-/iTransformer?nw=nwuserchekai_kao)
 
 
