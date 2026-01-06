@@ -1,6 +1,6 @@
 # *24 & 72-hour forecasting for PM2.5 by iTransformer*
 
-# ✨ 更新：上傳書面報告
+✨ 更新：上傳書面報告
 
 本專案使用 **iTransformer** 預測全臺灣 77 座空氣品質監測站的未來 24/72 小時 **PM2.5 濃度**。
 
